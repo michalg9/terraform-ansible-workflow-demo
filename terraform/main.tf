@@ -31,75 +31,44 @@ data "aws_ami" "ubuntu" {
   owners = ["137112412989"]
 }
 
-resource "aws_security_group" "allow_access" {
-  name        = "tf-ansible-workflow-${var.spacelift_stack_id}"
-  description = "Allow SSH, HTTP and HTTPS traffic"
-  ingress {
-    description = "SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    description = "HTTP"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "HTTPS"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  
-  ingress {
-    description = "HTTP"
-    from_port   = 8000
-    to_port     = 8000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "tf-ansible-workflow"
-    SpaceliftStackID = var.spacelift_stack_id
-    Ansible = "true"
-  }
-}
-
-
-resource "aws_instance" "machine" {
+module "ec2" {
   count = var.aws_instances_count
 
-  ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "t2.micro"
-  vpc_security_group_ids = [aws_security_group.allow_access.id]
+  source  = "terraform-aws-modules/ec2-instance/aws"
+  version = "5.6.1"
 
-  lifecycle {
-    ignore_changes = [
-      # These machines are long-lived and we don't want to destroy them every
-      # time there's a new Ubuntu AMI release.
-      ami,
-    ]
+  name = local.name
+
+  ami               = data.aws_ami.ubuntu.id
+  instance_type     = "t2.micro"
+  availability_zone = element(module.vpc.azs, 0)
+
+  // TODO change to private subnet and set up proper netowrking
+  subnet_id                   = element(module.vpc.public_subnets, 0)
+  vpc_security_group_ids      = [module.security_group.security_group_id]
+  associate_public_ip_address = true
+  disable_api_stop            = false
+
+
+  iam_role_description = "IAM role for EC2 instance"
+  iam_role_policies = {
+    AdministratorAccess = "arn:aws:iam::aws:policy/AdministratorAccess"
   }
+
+  iam_instance_profile = "AmazonSSMRoleForInstancesQuickSetup"
+
+  user_data_base64            = base64encode(local.user_data)
+  user_data_replace_on_change = true
+
+  root_block_device = [
+    {
+      volume_size = 16,
+    },
+  ]
 
   key_name = aws_key_pair.ansible-key.key_name
 
-  tags = {
-    Name = "tf-ansible-workflow-${var.spacelift_stack_id}"
-    SpaceliftStackID = var.spacelift_stack_id
-    Environment = "dev"
-    Ansible = "true"
-  }
+
+  tags = local.tags
 }
+
