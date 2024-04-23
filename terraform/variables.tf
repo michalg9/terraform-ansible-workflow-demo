@@ -19,3 +19,8 @@ variable "spacelift_labels" {
   type    = list(string)
   default = ["folder:ansible-example"]
 }
+
+variable "aws_instances_count" {
+  type = number
+  default = 1
+}
