@@ -11,7 +11,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-
 provider "spacelift" {
 }
 
@@ -30,6 +29,8 @@ data "aws_ami" "ubuntu" {
 
   owners = ["137112412989"]
 }
+
+data "aws_availability_zones" "available" {}
 
 module "ec2" {
   count = var.aws_instances_count
