@@ -16,3 +16,8 @@ variable "github_org_name" {
   type    = string
   default = ""
 }
+
+variable "space_id" {
+  type = string
+  default = "root"
+}

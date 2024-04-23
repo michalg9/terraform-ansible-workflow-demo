@@ -24,3 +24,8 @@ variable "aws_instances_count" {
   type = number
   default = 1
 }
+
+variable "space_id" {
+  type = string
+  default = "root"
+}

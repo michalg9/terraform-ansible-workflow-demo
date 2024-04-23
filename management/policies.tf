@@ -3,7 +3,8 @@ resource "spacelift_policy" "ignore-outside-project-root" {
   body = file("${path.module}/policies/ignore-outside-project-root.rego")
   type = "GIT_PUSH"
 
-  labels = toset(var.spacelift_labels)
+  labels   = toset(var.spacelift_labels)
+  space_id = var.space_id
 }
 
 resource "spacelift_policy" "trigger-dependent-stacks" {
@@ -11,7 +12,8 @@ resource "spacelift_policy" "trigger-dependent-stacks" {
   body = file("${path.module}/policies/trigger-dependent-stacks.rego")
   type = "TRIGGER"
 
-  labels = toset(var.spacelift_labels)
+  labels   = toset(var.spacelift_labels)
+  space_id = var.space_id
 }
 
 resource "spacelift_policy" "warn-on-unreachable-hosts" {
@@ -19,5 +21,6 @@ resource "spacelift_policy" "warn-on-unreachable-hosts" {
   body = file("${path.module}/policies/warn-on-unreachable-hosts.rego")
   type = "PLAN"
 
-  labels = toset(var.spacelift_labels)
+  labels   = toset(var.spacelift_labels)
+  space_id = var.space_id
 }
