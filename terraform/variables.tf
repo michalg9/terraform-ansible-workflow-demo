@@ -57,3 +57,8 @@ variable "space_id" {
   type    = string
   default = "root"
 }
+
+variable "ami" {
+  type    = string
+  default = ""
+}

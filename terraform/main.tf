@@ -40,7 +40,7 @@ module "ec2" {
 
   name = local.name
 
-  ami               = data.aws_ami.ubuntu.id
+  ami               = var.ami != "" ? var.ami : data.aws_ami.ubuntu.id
   instance_type     = "t2.micro"
   availability_zone = element(module.vpc.azs, 0)
 
